@@ -75,3 +75,11 @@ let () =
   print_list (insert_values 4 [1; 3; 10] Empty |> in_order_tree );
   print_list (insert_values 4 [2; 1; 10] Empty |> in_order_tree );
   print_list (insert_values 4 [2; 1; 10; 5; 20; 13] Empty |> in_order_tree );
+  print_string "Test StackMachine und Machine-Evaluator\n";
+  let module StackEvaluator = MakeProgramEvaluator(StackMachine) in
+  print_int (StackEvaluator.run [StackEvaluator.Instr (StackMachine.Const 2); StackEvaluator.Instr StackMachine.Add] 3); print_string " = 5\n";
+  print_int (StackEvaluator.run [StackEvaluator.Instr (StackMachine.Const 2); StackEvaluator.Instr (StackMachine.Scale2 10)] 3); print_string " = 20\n";
+  print_int (StackEvaluator.run [StackEvaluator.Ite ([StackEvaluator.Instr (StackMachine.Const 2)],[StackEvaluator.Instr (StackMachine.Const 10)])] 0); print_string " = 10\n";
+  print_int (StackEvaluator.run [StackEvaluator.Ite ([StackEvaluator.Instr (StackMachine.Const 2)],[StackEvaluator.Instr (StackMachine.Const 10)])] 3); print_string " = 2\n";
+  print_string "Test Register-Machine\n";
+  print_int (RegisterMachine.get_result (RegisterMachine.exec (RegisterMachine.start 1) (RegisterMachine.MoveReg (RegisterMachine.Ra,RegisterMachine.Rc)))); print_string " = 1\n";
