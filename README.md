@@ -6,6 +6,10 @@ Dateien ohne `_sol` enthalten nur Struktur und Tests (unvollständig!), mit `_so
 
 Über PRs um weitere Klausuren oder Tests hinzuzufügen freue ich mich!
 
+### Verfügbare Tests
+
+- Wiederholungsklausur Wintersemester 16/17 (inzwischen vollständig)
+
 ### Tests laufen lassen
 ```bash 
 ocamlc -g -thread unix.cma threads.cma klausur1617wdh.ml && ./a.out
