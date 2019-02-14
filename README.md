@@ -9,6 +9,8 @@ Dateien ohne `_sol` enthalten nur Struktur und Tests (unvollständig!), mit `_so
 ### Verfügbare Tests
 
 - Wiederholungsklausur Wintersemester 16/17 (inzwischen vollständig)
+- Wiederholungsklausur Wintersemester 15/16
+    - Lift List/SearchTree
 
 ### Tests laufen lassen
 ```bash 
