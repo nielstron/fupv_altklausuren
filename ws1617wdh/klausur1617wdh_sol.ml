@@ -149,7 +149,7 @@ let print_list list =
 
 let () = 
   print_string "Test b-Trees\n";
-  print_string "All following lists should be  in order \n";
+  print_string "All following lists should be  in order except for max_int (not an error! this marks ends of nodes) \n";
   print_list (insert_values 4 [1; 3; 10] Empty |> in_order_tree );
   print_list (insert_values 4 [2; 1; 10] Empty |> in_order_tree );
   print_list (insert_values 4 [2; 1; 10; 5; 20; 13] Empty |> in_order_tree );
