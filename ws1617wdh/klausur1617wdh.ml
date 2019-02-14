@@ -85,3 +85,6 @@ let () =
   print_int (RegisterMachine.get_result (RegisterMachine.exec (RegisterMachine.start 1) (RegisterMachine.MoveReg (RegisterMachine.Ra,RegisterMachine.Rc)))); print_string " = 1\n";
   print_int (RegisterMachine.get_result (RegisterMachine.exec (RegisterMachine.start 1) (RegisterMachine.MovConst (RegisterMachine.Ra,5)))); print_string " = 5\n";
   print_int (RegisterMachine.get_result (RegisterMachine.exec (RegisterMachine.exec (RegisterMachine.start 1) (RegisterMachine.MovConst (RegisterMachine.Ra,5))) (RegisterMachine.Add (RegisterMachine.Ra, RegisterMachine.Rc)))); print_string " = 6\n";
+  print_string "Test eval\n";
+  let tree = Any [BinOp ((fun a b -> (delay 1.); a),(Const 1),(Const 5)); Const 2] in print_int @@ eval tree; print_string " = 2\n";
+  let tree = Any [Const 2; BinOp ((fun a b -> (delay 1.); a),(Const 1),(Const 5))] in print_int @@ eval tree; print_string " = 2\n";
