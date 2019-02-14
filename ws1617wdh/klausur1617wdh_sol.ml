@@ -161,3 +161,5 @@ let () =
   print_int (StackEvaluator.run [StackEvaluator.Ite ([StackEvaluator.Instr (StackMachine.Const 2)],[StackEvaluator.Instr (StackMachine.Const 10)])] 3); print_string " = 2\n";
   print_string "Test Register-Machine\n";
   print_int (RegisterMachine.get_result (RegisterMachine.exec (RegisterMachine.start 1) (RegisterMachine.MoveReg (RegisterMachine.Ra,RegisterMachine.Rc)))); print_string " = 1\n";
+  print_int (RegisterMachine.get_result (RegisterMachine.exec (RegisterMachine.start 1) (RegisterMachine.MovConst (RegisterMachine.Ra,5)))); print_string " = 5\n";
+  print_int (RegisterMachine.get_result (RegisterMachine.exec (RegisterMachine.exec (RegisterMachine.start 1) (RegisterMachine.MovConst (RegisterMachine.Ra,5))) (RegisterMachine.Add (RegisterMachine.Ra, RegisterMachine.Rc)))); print_string " = 6\n";
