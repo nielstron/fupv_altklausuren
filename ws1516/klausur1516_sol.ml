@@ -1,6 +1,45 @@
 open Thread
 open Event
 
+(* 1. *)
+let f x = let p a b = a+b in p x
+let f = match [1,2] with [x,y] -> x+y | z -> 0
+(* let f = List.fold_left (fun a x -> x a) *)
+let f = let rec x = 1 in let x x = x in (print_string "Expression of task 1 2e): "; print_int (x 2); print_newline ();)
+
+(* 3. *)
+
+module type Vector = sig
+  type t = (int*int) list
+  val empty : t
+  val set : int -> int -> t -> t
+  val add : t -> t -> t
+  val mul : int -> t -> t
+  val sprod : t -> t -> int
+end
+
+module SparseVector: Vector = struct
+  type t = (int*int) list
+  let empty = []
+  let rec set i a v = match v with 
+    | [] -> if a = 0 then v else (i,a)::v
+    | (j, b)::xs -> if j = i then (if a = 0 then xs else (i, a)::xs) else (j,b)::(set i a xs)
+  let rec add v w = 
+    let rec add_elem (i, a) w = 
+      match w with
+      | [] -> [(i, a)]
+      | (j, b)::xs -> if j = i then set i (a+b) xs else (j,b)::(add_elem (i,a) xs)
+    in match v with [] -> w
+                  | y::ys -> add ys (add_elem y w)
+  let rec mul r v = match v with [] -> [] | (i, a)::xs -> set i (r*a) (mul r xs) 
+  let rec sprod v w = let rec sprod_elem (i, a) w =
+                        match w with 
+                        | [] -> 0
+                        | (j, b)::xs -> if j = i then a*b else sprod_elem (i, a) xs
+    in match v with [] -> 0 | x::xs -> sprod_elem x w + sprod xs w
+end
+
+
 (* 4. *)
 
 module type Base = sig
@@ -64,7 +103,22 @@ module SearchTree = Lift (struct
 type 'a t = Leaf of 'a | Node of 'a t * 'a t
 
 (* ---- Test environment ---- *)
+let print_vector vector = 
+  print_string "[ ";
+  let rec print_rem list = 
+    match list with [] -> print_string "]"; print_newline ()
+                  | (i, a)::xs -> print_string "("; print_int i; print_string ", "; print_int a; print_string "), "; print_rem xs
+  in print_rem vector
+
 let () =
+  print_string "Test SparseScalar\n";
+  print_string "empty: "; print_vector SparseVector.empty;
+  print_string "Vectors should be 10 at 1, no other entries\n";
+  print_string "set: "; SparseVector.empty |> SparseVector.set 2 0 |> SparseVector.set 1 10 |> print_vector;
+  print_string "add: "; SparseVector.add [(1, 3); (2, 1)] [(1, 7); (2, -1)] |> print_vector;
+  print_string "mul: "; SparseVector.mul 2 [(1, 5)] |> print_vector;
+  print_string "mul zero: "; SparseVector.mul 0 [(1, 5)] |> print_vector;
+  print_string "sprod: "; SparseVector.sprod [(1, 5); (2, 10)] [(1, 2)] |> print_int; print_string " = 10\n";
   print_string "Test Lift List\n";
   print_string "Should print all number from 1 to 10 in ascending order\n";
   print_string "iter: "; List.of_list [1;2;3;4;5;6;7;8;9;10] |> List.iter print_int; print_newline ();

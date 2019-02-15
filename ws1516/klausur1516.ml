@@ -1,6 +1,20 @@
 open Thread
 open Event
 
+(* 3. *)
+
+module type Vector = sig
+  type t = (int*int) list
+  val empty : t
+  val set : int -> int -> t -> t
+  val add : t -> t -> t
+  val mul : int -> t -> t
+  val sprod : t -> t -> int
+end
+
+module SparseVector: Vector = struct
+end
+
 (* 4. *)
 
 module type Base = sig
@@ -40,7 +54,22 @@ module SearchTree = Lift (struct
 type 'a t = Leaf of 'a | Node of 'a t * 'a t
 
 (* ---- Test environment ---- *)
+let print_vector vector = 
+  print_string "[ ";
+  let rec print_rem list = 
+    match list with [] -> print_string "]"; print_newline ()
+                  | (i, a)::xs -> print_string "("; print_int i; print_string ", "; print_int a; print_string "), "; print_rem xs
+  in print_rem vector
+
 let () =
+  print_string "Test SparseScalar\n";
+  print_string "empty: "; print_vector SparseVector.empty;
+  print_string "Vectors should be 10 at 1, no other entries\n";
+  print_string "set: "; SparseVector.empty |> SparseVector.set 2 0 |> SparseVector.set 1 10 |> print_vector;
+  print_string "add: "; SparseVector.add [(1, 3); (2, 1)] [(1, 7); (2, -1)] |> print_vector;
+  print_string "mul: "; SparseVector.mul 2 [(1, 5)] |> print_vector;
+  print_string "mul zero: "; SparseVector.mul 0 [(1, 5)] |> print_vector;
+  print_string "sprod: "; SparseVector.sprod [(1, 5); (2, 10)] [(1, 2)] |> print_int; print_string " = 10\n";
   print_string "Test Lift List\n";
   print_string "Should print all number from 1 to 10 in ascending order\n";
   print_string "iter: "; List.of_list [1;2;3;4;5;6;7;8;9;10] |> List.iter print_int; print_newline ();
