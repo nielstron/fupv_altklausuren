@@ -9,11 +9,13 @@ Dateien ohne `_sol` enthalten nur Struktur und Tests (unvollständig!), mit `_so
 ### Verfügbare Tests
 
 - Wiederholungsklausur Wintersemester 16/17 (inzwischen vollständig)
-- Wiederholungsklausur Wintersemester 15/16
-    - SparseVector
-    - Lift List/SearchTree
+- Wiederholungsklausur Wintersemester 15/16 (inzwischen vollständig)
 
 ### Tests laufen lassen
 ```bash 
 ocamlc -g -thread unix.cma threads.cma klausur1617wdh.ml && ./a.out
 ```
+
+### Hinweis auf Unvollkommenheit
+
+Selbstverständlich kann weder bei den Lösungsvorschlägen, noch bei den Tests ein Anspruch auf [Korrektheit oder Vollständigkeit](https://de.wikipedia.org/wiki/G%C3%B6delscher_Unvollst%C3%A4ndigkeitssatz) erhoben werden 
