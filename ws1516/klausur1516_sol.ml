@@ -100,7 +100,24 @@ module SearchTree = Lift (struct
 
 
 (* 5. *)
-type 'a t = Leaf of 'a | Node of 'a t * 'a t
+
+module TreeMin: sig 
+  type 'a t = Leaf of 'a | Node of 'a t * 'a t
+  val min: 'a t -> 'a end = struct
+  type 'a t = Leaf of 'a | Node of 'a t * 'a t
+  let rec min tree = match tree with 
+    | Node (l, r) -> let resl = new_channel () in let resr = new_channel () in
+      let thread_func channel = 
+        let (tree, answer) = receive channel |> sync in
+        min tree |> send answer |> sync in
+      (let to_l = new_channel () in let _ = create thread_func to_l in send to_l (l, resl) |> sync);
+      (let to_r = new_channel () in let _ = create thread_func to_r in send to_r (r, resr) |> sync);
+      let leftresult = receive resl |> sync in let rightresult = receive resr |> sync in
+      if leftresult < rightresult then leftresult else rightresult
+    | Leaf v -> v
+
+
+end
 
 (* ---- Test environment ---- *)
 let print_vector vector = 
@@ -135,4 +152,6 @@ let () =
     print_string "filter: "; List.of_list [1;2;3;20;4;5;6;7;40;8;9;11;10] |> List.filter (fun x -> x <= 10) |> List.iter print_int; print_newline ();
     print_string "append: "; List.append (List.of_list [1;2;3;4;5]) (List.of_list [6;7;8;9;10]) |> List.iter print_int; print_newline ();
     print_string "flatten: "; List.of_list [List.of_list [1;2;3;4;5]; List.of_list [6;7;8;9;10]] |> List.flatten |> List.iter print_int; print_newline (); 
-    print_string "to_list/of_list: "; List.of_list [1;2;3;4;5;6;7;8;9;10] |> List.to_list |> (let rec print l = match l with x::xs -> print_int x; print xs | [] -> () in print) ; print_newline ();)
+    print_string "to_list/of_list: "; List.of_list [1;2;3;4;5;6;7;8;9;10] |> List.to_list |> (let rec print l = match l with x::xs -> print_int x; print xs | [] -> () in print) ; print_newline (););
+  print_string "Test minTree\n";
+  let tree = TreeMin.Node (TreeMin.Node ((TreeMin.Leaf 3), (TreeMin.Leaf 5)), TreeMin.Node (TreeMin.Leaf 1, TreeMin.Leaf 10)) in TreeMin.min tree |> print_int; print_string " = 1\n";
