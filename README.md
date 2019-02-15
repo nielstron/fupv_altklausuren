@@ -9,7 +9,10 @@ Dateien ohne `_sol` enthalten nur Struktur und Tests (unvollständig!), mit `_so
 ### Verfügbare Tests
 
 - Wiederholungsklausur Wintersemester 16/17 (inzwischen vollständig)
-- Wiederholungsklausur Wintersemester 15/16 (inzwischen vollständig)
+- Klausur Wintersemester 16/17
+    - [x] trie insert
+    - [ ] trie merge
+- Klausur Wintersemester 15/16 (inzwischen vollständig)
 
 ### Tests laufen lassen
 ```bash 
