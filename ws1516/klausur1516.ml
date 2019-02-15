@@ -51,7 +51,12 @@ module SearchTree = Lift (struct
 
 
 (* 5. *)
-type 'a t = Leaf of 'a | Node of 'a t * 'a t
+module TreeMin: sig 
+  type 'a t = Leaf of 'a | Node of 'a t * 'a t
+  val min: 'a t -> 'a end = struct
+  type 'a t = Leaf of 'a | Node of 'a t * 'a t
+  let min tree = raise (Invalid_argument "Not implemented")
+end
 
 (* ---- Test environment ---- *)
 let print_vector vector = 
@@ -84,4 +89,6 @@ let () =
     print_string "filter: "; List.of_list [1;2;3;20;4;5;6;7;40;8;9;11;10] |> List.filter (fun x -> x <= 10) |> List.iter print_int; print_newline ();
     print_string "append: "; List.append (List.of_list [1;2;3;4;5]) (List.of_list [6;7;8;9;10]) |> List.iter print_int; print_newline ();
     print_string "flatten: "; List.of_list [List.of_list [1;2;3;4;5]; List.of_list [6;7;8;9;10]] |> List.flatten |> List.iter print_int; print_newline (); 
-    print_string "to_list/of_list: "; List.of_list [1;2;3;4;5;6;7;8;9;10] |> List.to_list |> (let rec print l = match l with x::xs -> print_int x; print xs | [] -> () in print) ; print_newline ();)
+    print_string "to_list/of_list: "; List.of_list [1;2;3;4;5;6;7;8;9;10] |> List.to_list |> (let rec print l = match l with x::xs -> print_int x; print xs | [] -> () in print) ; print_newline (););
+  print_string "Test minTree\n";
+  let tree = TreeMin.Node (TreeMin.Node ((TreeMin.Leaf 3), (TreeMin.Leaf 5)), TreeMin.Node (TreeMin.Leaf 1, TreeMin.Leaf 10)) in TreeMin.min tree |> print_int; print_string " = 1\n";
