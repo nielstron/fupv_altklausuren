@@ -149,9 +149,16 @@ module ParallelReduce = struct
 
   let rec reduce_list g l =
     print_string "List length: "; print_int (List.length l); print_newline();
-    match l with [] -> Invalid_argument "error" |> raise
-               | [c] -> sync c
-               | x::y::xs -> reduce_list g ((preduce g (sync x) (sync y))::xs)
+    let rec better_list l before res =
+      match l with [] -> res
+                 | x::xs -> better_list xs (x::before) ((wrap x (fun r -> (r, before@xs)))::res )
+    in let rec reduce_better_list v l =
+         match l with [] -> let Some res = v in res
+                    | x::xs -> let (res, rem) = select l in
+                      match v with None -> reduce_better_list (Some res) (better_list rem [] [])
+                                 | Some res2 -> reduce_better_list (None) (better_list ((preduce g res res2)::rem) [] [])
+    in reduce_better_list None (better_list l [] [])
+
 
   (* 7.4. *)
   let map_reduce f g l = reduce_list g (pmap f l)
