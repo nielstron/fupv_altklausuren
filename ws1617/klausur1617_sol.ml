@@ -148,7 +148,6 @@ module ParallelReduce = struct
                | x::xs -> if a = x then xs@r else remove_from_list a xs (x::r)
 
   let rec reduce_list g l =
-    print_string "List length: "; print_int (List.length l); print_newline();
     let rec better_list l before res =
       match l with [] -> res
                  | x::xs -> better_list xs (x::before) ((wrap x (fun r -> (r, before@xs)))::res )
@@ -212,5 +211,6 @@ let () =
   let a = GraphImpl.Node (3, []) in let b = GraphImpl.Node (2, [a]) in let c = GraphImpl.Node (4, [a]) in let d = GraphImpl.Node (1, [b; c]) in
   GraphImplSearch.dfs [a;b;c;d] d (fun () (Node (v, l)) -> print_int v) (); print_string " = 1234 \n";
   print_string "Test map_reduce\n";
+  print_string "Values should be provided in ascending order (delayed by their value)";
   let l = [1.;0.5;0.2;0.4;0.7] in
-  ParallelReduce.map_reduce (fun x -> delay x; print_float x; print_newline(); x) (fun a b -> print_float (a+.b); a+.b) l |> print_float; print_string " = 2.8\n";
+  ParallelReduce.map_reduce (fun x -> delay x; print_string "provide: "; print_float x; print_newline(); x) (fun a b -> print_string "sum: ";print_float (a+.b);print_newline(); a+.b) l |> print_float; print_string " = 2.8\n";
