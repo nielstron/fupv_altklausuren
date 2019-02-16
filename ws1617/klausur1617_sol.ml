@@ -102,14 +102,16 @@ end = struct
                | x::xs -> if n = x then true else known n xs
   let dfs g n f a =
     let rec dfs_rec g n f a k =
-      let s = G.successors g n in
-      let rec dfs_rem_succ rem_suc f a k =
-        match rem_suc with
-        | [] -> (a,k)
-        | x::xs -> if not (known x k) then
-            let (a, k) = dfs_rec g x f (f a x) (x::k)
-            in dfs_rem_succ xs f a k else dfs_rem_succ xs f a k
-      in dfs_rem_succ s f a k
+      if known n k then (a, k) else
+        let k = n::k in
+        let a = (f a n) in
+        let s = G.successors g n in
+        let rec dfs_rem_succ rem_suc f a k =
+          match rem_suc with
+          | [] -> (a,k)
+          | x::xs -> let (a, k) = dfs_rec g x f a k
+            in dfs_rem_succ xs f a k
+        in dfs_rem_succ s f a k
     in let (a, k) = dfs_rec g n f a [] in a
 end
 
@@ -143,14 +145,13 @@ module ParallelReduce = struct
   (* 7.3. *)
   let rec remove_from_list a l r =
     match l with [] -> r
-               | x::xs -> if a = x then xs else remove_from_list a xs (x::r)
+               | x::xs -> if a = x then xs@r else remove_from_list a xs (x::r)
 
   let rec reduce_list g l =
+    print_string "List length: "; print_int (List.length l); print_newline();
     match l with [] -> Invalid_argument "error" |> raise
                | [c] -> sync c
-               | _ -> let a = choose l in let l = remove_from_list a l [] 
-                 in let b = choose l in let l = remove_from_list b l [] in
-                 reduce_list g ((preduce g (sync a) (sync b))::l)
+               | x::y::xs -> reduce_list g ((preduce g (sync x) (sync y))::xs)
 
   (* 7.4. *)
   let map_reduce f g l = reduce_list g (pmap f l)
@@ -205,4 +206,4 @@ let () =
   GraphImplSearch.dfs [a;b;c;d] d (fun () (Node (v, l)) -> print_int v) (); print_string " = 1234 \n";
   print_string "Test map_reduce\n";
   let l = [1.;0.5;0.2;0.4;0.7] in
-  map_reduce (fun x -> delay x; x) (fun a b -> a+.b) l |> print_float; print_string " = 2.8\n";
+  ParallelReduce.map_reduce (fun x -> delay x; print_float x; print_newline(); x) (fun a b -> print_float (a+.b); a+.b) l |> print_float; print_string " = 2.8\n";
