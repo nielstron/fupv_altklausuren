@@ -123,4 +123,4 @@ let () =
   GraphImplSearch.dfs [a;b;c;d] d (fun () (Node (v, l)) -> print_int v) (); print_string " = 1234 \n";
   print_string "Test map_reduce\n";
   let l = [1.;0.5;0.2;0.4;0.7] in
-  map_reduce (fun x -> delay x; x) (fun a b -> a+.b) l |> print_float; print_string " = 2.8\n";
+  ParallelReduce.map_reduce (fun x -> delay x; x) (fun a b -> a+.b) l |> print_float; print_string " = 2.8\n";
