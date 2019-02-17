@@ -67,14 +67,14 @@ end
 (* https://www.geeksforgeeks.org/inorder-tree-traversal-without-recursion/ *)
 module TreeIter = struct
   type 'a t = Leaf of 'a | Node of 'a * 'a t * 'a t
-  type 'a s = ('a t list)
+  type 'a s = 'a t list
   let rec traverse_left tree par =
     match tree with Leaf x -> tree::par
                   | Node (x, l, r) -> traverse_left l (tree::par)
   let init tree = traverse_left tree []
   let next state = match state with [] -> (None, [])
-                                  | n::par -> match n with Leaf x -> (x, par)
-                                                         | Node (x, l, r) -> (x, traverse_left r par)
+                                  | n::par -> match n with Leaf x -> (Some x, par)
+                                                         | Node (x, l, r) -> (Some x, traverse_left r par)
 end
 
 module ExtIter (I:Iter) = struct
@@ -87,14 +87,15 @@ module ExtIter (I:Iter) = struct
 end
 
 module PairIter (F:Iter) (G:Iter) = struct
-  type ('a, 'b) t = 'a F.t * 'b G.t
-  type ('a, 'b) s = 'a F.s * 'b G.s
+  type ('a, 'b) t = ('a F.t) * ('b G.t)
+  type ('a, 'b) s = ('a F.s) * ('b G.s)
   let init x = let (f, g) = x in (F.init f, G.init g)
   let next (f, g) = match F.next f with (None, f) -> (None, (f, g))
                                       | (Some x, nf) -> match G.next g with (None, g) -> (None, (f, g))
                                                                           | (Some y, ng) -> (Some (x,y), (nf, ng))
 end
 
+(* Aufgabe 8 *)
 module Blog = struct
   type blog = string list
   type user = string
@@ -111,7 +112,7 @@ module Blog = struct
       match m with Post (u, p, b) -> (match get_user_pw u with None -> server_thread blogs
                                                              | Some x -> if x = p then server_thread ((u, b)::blogs) else server_thread blogs)
                  | Read (u, rep) -> sync (send rep (user_blog u blogs [])); server_thread blogs
-    in create server_thread []; ch
+    in let _ = create server_thread [] in (); ch
 
   let post server user pass text = sync (send server (Post (user, pass, text)))
   let read server user = let r = new_channel () in sync (send server (Read (user,r ))); sync (receive r)
@@ -120,6 +121,18 @@ end
 
 
 (*tests*)
+
+module Iterate (I:Iter) = struct
+  let to_list a = 
+    let rec iter_rec s = match I.next s with (Some x, ns) -> x::(iter_rec ns)
+                                           | (None, _) -> [] 
+    in iter_rec (I.init a)
+end
+module ListIterate = Iterate (ListIter)
+module TreeIterate = Iterate (TreeIter)
+module ExtListIterate = ExtIter (ListIter)
+module TreeListIter = PairIter (ListIter) (TreeIter)
+
 let test expected result = 
   if expected = result then 
     Printf.printf "Test correct\n"
@@ -134,7 +147,7 @@ let testList exp res =
                                         | x'::xs' -> (test x x'; helper xs xs'))
     in helper exp res            
   else
-    Printf.printf "testList failed"
+    Printf.printf "testList failed\n"
 
 let ammoniumsulfat = Bond(
     [Bond([Atom(N), 1; Atom(H), 4]), 2;
@@ -157,7 +170,35 @@ let main = Printf.printf "Tests Aufgabe 3:\n";
   testList [0; 2; 1; 8; 2; 0] [atoms H (Bond([Atom(O), 2])); atoms O (Bond([Atom(O), 2])); atoms O (Bond([Atom(H), 2; Atom(O), 1])); 
                                atoms H ammoniumsulfat; atoms N ammoniumsulfat; atoms Al ammoniumsulfat];
   Printf.printf "Tests Aufgabe 6.2:\n";
-  testList [true; false; true] [is_balanced_reaction wasserGleichung; is_balanced_reaction falschealogleichung; is_balanced_reaction richtigealogleichung]
+  testList [true; false; true] [is_balanced_reaction wasserGleichung; is_balanced_reaction falschealogleichung; is_balanced_reaction richtigealogleichung];
+  print_string "Tests Aufgabe 7:\n";
+  print_string "ListIterate:\n";
+  let l = [1;2;3;4;5] in
+  testList l (ListIterate.to_list l);
+  print_string "TreeIterate:\n";
+  let t = TreeIter.Node (4, TreeIter.Node (2, TreeIter.Leaf 1, TreeIter.Leaf 3), TreeIter.Node (6, TreeIter.Leaf 5, TreeIter.Leaf 7))
+  in testList [1;2;3;4;5;6;7] (TreeIterate.to_list t);
+  print_string "PairIterate:\n";
+  let (av, astate) = TreeListIter.next(TreeListIter.init (l, t)) in 
+  let (b, _) = TreeListIter.next (let (_, temp) = TreeListIter.next (let (_, temp) = TreeListIter.next ( let (_, temp) = TreeListIter.next ( let (_, temp) = TreeListIter.next (astate) in temp ) in temp ) in temp) in temp) in
+  testList [Some (1,1); None] [av;b];
+  print_string "ExtIter: \n";
+  let (shouldbethree, temp) = ExtListIterate.next_filtered (fun x -> x=3) (ListIter.init [2;3]) in 
+  let (shouldbenone, temp) = ExtListIterate.next_filtered (fun x -> x=3) (temp) in 
+  testList [Some 3; None] [shouldbethree; shouldbenone];
+  let (shouldbethree, temp) = ExtListIterate.next_mapped (fun x -> x*.2.) (ListIter.init [1.5]) in 
+  let (shouldbenone, temp) = ExtListIterate.next_mapped (fun x -> x*.2.) (temp) in 
+  testList [Some 3.; None] [shouldbethree; shouldbenone];
+  print_string "Tests Aufgabe 8 (Blog):\n";
+  let s = Blog.start_server [("userA", "passA"); ("userB", "passB")] in
+  Blog.post s "userB" "passB" "Welcome to my OCaml blog.";
+  Blog.post s "userA" "passA" "My name is A and I’m starting my own blog!";
+  Blog.post s "userB" "12345" "I am a hacker attacking B’s blog now!";
+  testList [] (Blog.read s "anonymous");
+  Blog.post s "userB" "passB" "You can have threads in OCaml!";
+  testList ["Welcome to my OCaml blog."; "You can have threads in OCaml!"] (Blog.read s "userB");
+
+
 
 
 
