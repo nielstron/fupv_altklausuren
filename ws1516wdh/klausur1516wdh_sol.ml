@@ -98,7 +98,25 @@ module Tuple (A:Hashable) (B:Hashable) : Hashable = struct
 end
 
 (* 6.4 *)
-module Memo2 (A:Hashable) (B:Hashable) = struct
+module Memo2 (A:Hashable) (B:Hashable):sig
+  type 'a s (* state for results of type 'a *)
+  val create : (A.t -> B.t -> 'a) -> 'a s
+  val eval : A.t -> B.t -> 'a s -> 'a * 'a s (* result and new state *)
+  val (%>) : ('a s -> 'a * 'a s) -> ('a -> 'a s -> 'b) -> 'a s -> 'b
+end = struct
+  module Tuple (A:Hashable) (B:Hashable) = struct
+    type t = A.t * B.t
+    let hash (a, b) = (A.hash a) + (B.hash b)
+    let apply f (a,b) = f a b
+    let create (a:A.t) (b:B.t) = (a,b)
+  end
+  module ABTuple = Tuple (A) (B)
+  module MemoTuple = Memo (ABTuple)
+  type 'a s = 'a MemoTuple.s
+  let create f = MemoTuple.create (ABTuple.apply f)
+  let eval a b s = MemoTuple.eval (ABTuple.create a b) s
+  let (%>) f g s = MemoTuple.(%>) f g s
+
 end
 
 
