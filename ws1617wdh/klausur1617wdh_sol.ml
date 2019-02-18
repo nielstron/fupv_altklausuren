@@ -6,18 +6,18 @@ type 'a anytree = Any of 'a anytree list
                 | Const of 'a
 
 (* 5 *)
-let rec eval tree = match tree with
-    Const a -> a 
-  | BinOp (f,l,r) -> f (eval l) (eval r)
-  | Any l -> let rep = new_channel () in 
-    let rec start_threads l = (match l with 
-          x::xs -> 
-          (let evaluate (req, reply) = 
-             let tree = sync(receive req) in sync (send reply (eval tree))
-           in let req = new_channel ()
-           in let _ = create evaluate (req, rep) in sync(send req x)); start_threads xs
-        | [] -> sync (receive rep))
-    in start_threads l
+let rec eval = function
+  | Const a -> a
+  | BinOp (op,a,b) ->
+    let ca,cb = new_channel (), new_channel () in
+    let _,_ = create (fun _ -> sync @@ send ca (eval a)) (),
+              create (fun _ -> sync @@ send cb (eval b)) () in
+    op (sync @@ receive ca) (sync @@ receive cb)
+  | Any l -> select (l |> List.map (fun a ->
+    let c = new_channel () in
+    let _ = create (fun _ -> sync @@ send c (eval a)) () in
+    receive c
+  ))
 
 
 module type Machine = sig
