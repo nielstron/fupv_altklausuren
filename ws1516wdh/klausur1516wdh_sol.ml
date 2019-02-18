@@ -62,6 +62,45 @@ module type Hashable = sig
   val hash : t -> int
 end
 
+(* 6.1 *)
+
+module Memo (A: Hashable) : sig
+  type 'a s (* state for results of type 'a *)
+  val create : (A.t -> 'a) -> 'a s
+  val eval : A.t -> 'a s -> 'a * 'a s (* result and new state *)
+  val (%>) : ('a s -> 'a * 'a s) -> ('a -> 'a s -> 'b) -> 'a s -> 'b
+end = struct
+  type 'a tree = Node of int * (A.t * 'a) list * 'a tree * 'a tree | Empty
+  type 'a s = (A.t -> 'a) * 'a tree
+  let create f = (f, Empty)
+  let eval v (f, t) = let rec search_tree t h =
+                        match t with Empty -> let res = f v in (res, Node (A.hash v, [(v, res)], Empty, Empty))
+                                   | Node (h2, res_list, l, r) -> if h2 < h then let (res, nl) = search_tree l h in (res, Node (h2, res_list, nl, r))
+                                     else if h2 > h then let (res, nr) = search_tree r h in (res, Node (h2, res_list, l, nr))
+                                     else match List.assoc_opt v res_list with 
+                                       | Some res -> (res, Node (h2, res_list, l, r))
+                                       | None ->  let res = f v in (res, Node(h2, (v, res)::res_list, l, r))
+    in let (res, tree) = search_tree t (A.hash v) in (res, (f, tree))
+  let (%>) f g s = let (res, state) = f s in g res state
+
+end
+
+(* 6.2 *)
+module Int: Hashable = struct
+  type t = int
+  let hash i = i mod 1024
+end
+
+(* 6.3 *)
+module Tuple (A:Hashable) (B:Hashable) : Hashable = struct
+  type t = A.t * B.t
+  let hash (a, b) = (A.hash a) + (B.hash b)
+end
+
+(* 6.4 *)
+module Memo2 (A:Hashable) (B:Hashable) = struct
+end
+
 
 (* --- Test environment --*)
 
