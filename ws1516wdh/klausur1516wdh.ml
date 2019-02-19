@@ -53,7 +53,12 @@ module Tuple (A:Hashable) (B:Hashable) : Hashable = struct
 end
 
 (* 6.4 *)
-module Memo2 (A:Hashable) (B:Hashable) = struct
+module Memo2 (A:Hashable) (B:Hashable): sig
+  type 'a s (* state for results of type 'a *)
+  val create : (A.t -> B.t -> 'a) -> 'a s
+  val eval : A.t -> B.t -> 'a s -> 'a * 'a s (* result and new state *)
+  val (%>) : ('a s -> 'a * 'a s) -> ('a -> 'a s -> 'b) -> 'a s -> 'b
+end = struct
 end
 
 
@@ -65,3 +70,28 @@ let () =
   let t1 = create (fun _ -> Server.request s (0.5, "I was requested first but should be printed second")) () in 
   let t2 = create (fun _ -> delay 0.1; Server.request s (0.1, "I was requested second but should be printed first")) () in
   join t1; join t2;
+  print_string "Test Memo2\n";
+  let module IntFork = struct
+    type t = int
+    let hash i = i mod 2
+    let create i = i
+  end
+  in let module MemoIntforkTuple = Memo2 (IntFork) (IntFork) in
+  let f a b = print_string "This string exactly printed thrice\n"; a+b in
+  let a = IntFork.create 1 in let b = IntFork.create 2 in
+  let c = IntFork.create 3 in let d = IntFork.create 2 in (*same hash but different val*)
+  let e = IntFork.create 2 in let g = IntFork.create 2 in (*different hash --> tree structure *)
+  let m = MemoIntforkTuple.create f in
+  let (r1, m ) = MemoIntforkTuple.eval a b m in
+  let (r2, m ) = MemoIntforkTuple.eval a b m in
+  let (r3, m ) = MemoIntforkTuple.eval c d m in
+  let (r4, m ) = MemoIntforkTuple.eval c d m in
+  let (r5, m ) = MemoIntforkTuple.eval e g m in
+  let (r6, m ) = MemoIntforkTuple.eval e g m in
+  Printf.fprintf stdout "%d = %d\n" r1 3;
+  Printf.fprintf stdout "%d = %d\n" r2 3;
+  Printf.fprintf stdout "%d = %d\n" r3 5;
+  Printf.fprintf stdout "%d = %d\n" r4 5;
+  Printf.fprintf stdout "%d = %d\n" r5 4;
+  Printf.fprintf stdout "%d = %d\n" r6 4;
+  ();
