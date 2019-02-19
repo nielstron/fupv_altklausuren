@@ -114,15 +114,42 @@ end
 
 (* ---- Test environment ---- *)
 
-open Peano
+let p = Printf.printf
 let () =  
-  Printf.fprintf stdout "%d = %d\n" (to_int (of_int 3)) (to_int (S (S (S Z))));
-  Printf.fprintf stdout "%d = %d\n" (to_int (of_int (-10))) (to_int Z);
-  Printf.fprintf stdout "%d = %d\n" (to_int (add (of_int 5) (of_int 13))) 18;
-  Printf.fprintf stdout "%d = %d\n" (to_int (mul (of_int 3) (of_int 11))) 33;
-  Printf.fprintf stdout "%d = %d\n" (to_int (sub (of_int 0) (of_int 11))) 0;
-  Printf.fprintf stdout "%d = %d\n" (to_int (sub (of_int 11) (of_int 0))) 11;
-  Printf.fprintf stdout "%d = %d\n" (to_int (sub (of_int 11) (of_int 3))) 8;
-  Printf.fprintf stdout "%b = %b\n" (leq (of_int 11) (of_int 3)) false;
-  Printf.fprintf stdout "%b = %b\n" (leq (of_int 3) (of_int 3)) true;
-  Printf.fprintf stdout "%b = %b\n" (leq (of_int 1) (of_int 3)) true;
+  print_string "Test Peano\n";
+  let module PeanoTest = struct
+    open Peano
+    let test () = 
+      Printf.fprintf stdout "%d = %d\n" (to_int (of_int 3)) (to_int (S (S (S Z))));
+      Printf.fprintf stdout "%d = %d\n" (to_int (of_int (-10))) (to_int Z);
+      Printf.fprintf stdout "%d = %d\n" (to_int (add (of_int 5) (of_int 13))) 18;
+      Printf.fprintf stdout "%d = %d\n" (to_int (mul (of_int 3) (of_int 11))) 33;
+      Printf.fprintf stdout "%d = %d\n" (to_int (sub (of_int 0) (of_int 11))) 0;
+      Printf.fprintf stdout "%d = %d\n" (to_int (sub (of_int 11) (of_int 0))) 11;
+      Printf.fprintf stdout "%d = %d\n" (to_int (sub (of_int 11) (of_int 3))) 8;
+      Printf.fprintf stdout "%b = %b\n" (leq (of_int 11) (of_int 3)) false;
+      Printf.fprintf stdout "%b = %b\n" (leq (of_int 3) (of_int 3)) true;
+      Printf.fprintf stdout "%b = %b\n" (leq (of_int 1) (of_int 3)) true;
+  end in PeanoTest.test ();
+  print_string "Test find1\n";
+  let module FindTest = struct
+    let l = [("first", 1); ("second", 3); ("third", 4)]
+    let print (r, l) = p "(";
+      (match r with None -> p "None"
+                  | Some s -> print_int s);
+      p ", [";
+      let rec helper l = 
+        match l with (s, v)::xs -> Printf.printf "(%s, %d);" s v; helper xs
+                   | [] -> ();
+      in helper l;
+      p "]\n"
+    let test () = 
+      p "Orig (requesting \"fourth\"): ";
+      print @@ find1 "fourth" l;
+      p "Requesting second: ";
+      let (r, l) = find1 "second" l in
+      print (r, l);
+      p "Requesting third: ";
+      let (r, l) = find1 "third" l in
+      print (r, l)
+  end in FindTest.test ()
