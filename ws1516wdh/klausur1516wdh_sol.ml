@@ -128,3 +128,19 @@ let () =
   let t1 = create (fun _ -> Server.request s (0.5, "I was requested first but should be printed second")) () in 
   let t2 = create (fun _ -> delay 0.1; Server.request s (0.1, "I was requested second but should be printed first")) () in
   join t1; join t2;
+  print_string "Test Memo2\n";
+  let module IntFork = struct
+    type t = int
+    let hash i = i mod 2
+    let create i = i
+  end
+  in let module MemoIntforkTuple = Memo2 (IntFork) (IntFork) in
+  let f a b = print_string "This string only printed twice\n" in
+  let a = IntFork.create 1 in let b = IntFork.create 2 in
+  let c = IntFork.create 3 in let d = IntFork.create 2 in (*same hash but different val*)
+  let m = MemoIntforkTuple.create f in
+  let (_, m ) = MemoIntforkTuple.eval a b m in
+  let (_, m ) = MemoIntforkTuple.eval a b m in
+  let (_, m ) = MemoIntforkTuple.eval c d m in
+  let (_, m ) = MemoIntforkTuple.eval c d m in
+  ();
