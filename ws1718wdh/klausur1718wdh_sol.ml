@@ -32,6 +32,7 @@ module Peano = struct
       | S _ -> true
 end
 
+(* 6.1 *)
 let find1 s l = let rec helper s l =
                   match l with (sq, r)::xs -> if sq = s then ((Some r), xs) else 
                       let (fr, xs) = helper s xs in (fr, ((sq, r)::xs))
@@ -39,21 +40,23 @@ let find1 s l = let rec helper s l =
   in let (res, xs) = helper s l in match res with None -> (None, xs)
                                                 | Some r -> (res, (s,r)::xs)
 
-module MFU = struct
-  let rec init l = match l with (sq, r)::xs -> (0, (sq, r))::(init xs)
-                              | [] -> []
-  let find2 s l = let rec helper s l =
-                    match l with 
-                    | (f, (sq, r))::xs -> if sq = s then (Some (f+1, (sq, r)), xs) else 
-                        let (res, xs) = helper s xs in
-                        ( match res with None -> (None, (f, (sq, r))::xs)
-                                       | Some (f2, (sq2, r2)) -> if f2 >= f then (res, (f, (sq, r))::xs) else
-                                           (res, (f, (sq, r))::(f2, (sq2, r2))::xs))
-                    | [] -> (None, [])
-    in let (res, xs) = helper s l in match res with None -> (None, xs)
-                                                  | Some (f, (s, r)) -> (Some r, xs)
+(* 6.2 *)
+let rec init l = match l with (sq, r)::xs -> (0, (sq, r))::(init xs)
 
-end
+                            | [] -> []
+
+(* 6.3 *)
+let find2 s l = let rec helper s l =
+                  match l with 
+                  | (f, (sq, r))::xs -> if sq = s then (false, Some (f+1, (sq, r)), xs) else 
+                      let (ins, res, xs) = helper s xs in
+                      if ins then (ins, res, (f, (sq, r))::xs) else
+                        ( match res with None -> (true, None, (f, (sq, r))::xs)
+                                       | Some (f2, (sq2, r2)) -> if f2 >= f then (false, res, (f, (sq, r))::xs) else
+                                           (true, res, (f, (sq, r))::(f2, (sq2, r2))::xs))
+                  | [] -> (true, None, [])
+  in let (ins, res, xs) = helper s l in match res with None -> (None, xs)
+                                                     | Some (f, (s, r)) -> if ins then (Some r, xs) else (Some r, (f, (s, r))::xs)
 
 module type S = sig
   type t
@@ -151,5 +154,34 @@ let () =
       print (r, l);
       p "Requesting third: ";
       let (r, l) = find1 "third" l in
+      print (r, l)
+  end in FindTest.test ();
+  print_string "Test find2\n";
+  let module FindTest = struct
+    let l = [("first", 1); ("second", 3); ("third", 4)]
+    let print (r, l) = p "(";
+      (match r with None -> p "None"
+                  | Some s -> print_int s);
+      p ", [";
+      let rec helper l = 
+        match l with (h ,(s, v))::xs -> Printf.printf "(%d, (%s, %d));" h s v; helper xs
+                   | [] -> ();
+      in helper l;
+      p "]\n"
+    let test () = 
+      p "Orig (requesting \"fourth\"): ";
+      let (r, l) = find2 "fourth" @@ init l;
+      in print (r, l);
+      p "Requesting second: ";
+      let (r, l) = find2 "second" l in
+      print (r, l);
+      p "Requesting third: ";
+      let (r, l) = find2 "third" l in
+      print (r, l);
+      p "Requesting second: ";
+      let (r, l) = find2 "second" l in
+      print (r, l);
+      p "Requesting first: ";
+      let (r, l) = find2 "first" l in
       print (r, l)
   end in FindTest.test ()
