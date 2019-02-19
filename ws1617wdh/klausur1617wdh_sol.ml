@@ -14,10 +14,10 @@ let rec eval = function
               create (fun _ -> sync @@ send cb (eval b)) () in
     op (sync @@ receive ca) (sync @@ receive cb)
   | Any l -> select (l |> List.map (fun a ->
-    let c = new_channel () in
-    let _ = create (fun _ -> sync @@ send c (eval a)) () in
-    receive c
-  ))
+      let c = new_channel () in
+      let _ = create (fun _ -> sync @@ send c (eval a)) () in
+      receive c
+    ))
 
 
 module type Machine = sig
@@ -80,31 +80,31 @@ end
 open List
 
 type btree =
-    | Node of (int * btree) list
-    | Empty
+  | Node of (int * btree) list
+  | Empty
 
 type split_res =
-    | Split of btree * int * btree
-    | Plain of btree
+  | Split of btree * int * btree
+  | Plain of btree
 
 (* 7 a) *)
 let split b c =
-    let rec aux l i = function [] -> failwith "split []"
-        | x::xs when i > 0 -> aux (x::l) (i-1) xs
-        | (x,t)::xs -> (rev ((max_int,t)::l)), x, xs in
-    if (length c) <= b then Plain (Node c) else
+  let rec aux l i = function [] -> failwith "split []"
+                           | x::xs when i > 0 -> aux (x::l) (i-1) xs
+                           | (x,t)::xs -> (rev ((max_int,t)::l)), x, xs in
+  if (length c) <= b then Plain (Node c) else
     let l,x,r = aux [] (b / 2) c in Split ((Node l),x,(Node r))
 
 (* 7 b) *)
 let insert b k t =
-    let rec aux = function Empty -> Split (Empty,k,Empty)
-        | Node(l) -> split b (list_ins [] l)
-    and list_ins acc = function [] -> failwith "list_ins []"
-        | (x,n)::xs when k < x -> (match (aux n) with
-            | Plain t' -> rev_append acc ((x,t')::xs)
-            | Split (t1,x',t2) -> rev_append ((x',t1)::acc) ((x,t2)::xs))
-        | (x,n)::xs -> list_ins ((x,n)::acc) xs in
-    match (aux t) with Plain t' -> t' | Split (t1,x,t2) -> Node [x,t1; max_int,t2]
+  let rec aux = function Empty -> Split (Empty,k,Empty)
+                       | Node(l) -> split b (list_ins [] l)
+  and list_ins acc = function [] -> failwith "list_ins []"
+                            | (x,n)::xs when k < x -> (match (aux n) with
+                                | Plain t' -> rev_append acc ((x,t')::xs)
+                                | Split (t1,x',t2) -> rev_append ((x',t1)::acc) ((x,t2)::xs))
+                            | (x,n)::xs -> list_ins ((x,n)::acc) xs in
+  match (aux t) with Plain t' -> t' | Split (t1,x,t2) -> Node [x,t1; max_int,t2]
 
 (* ------ Testing Environment -------- *)
 
@@ -137,8 +137,8 @@ let () =
   let module StackEvaluator = MakeProgramEvaluator(StackMachine) in
   print_int (StackEvaluator.run [StackEvaluator.Instr (StackMachine.Const 2); StackEvaluator.Instr StackMachine.Add] 3); print_string " = 5\n";
   print_int (StackEvaluator.run [StackEvaluator.Instr (StackMachine.Const 2); StackEvaluator.Instr (StackMachine.Scale2 10)] 3); print_string " = 20\n";
-  print_int (StackEvaluator.run [StackEvaluator.Ite ([StackEvaluator.Instr (StackMachine.Const 2)],[StackEvaluator.Instr (StackMachine.Const 10)])] 0); print_string " = 10\n";
-  print_int (StackEvaluator.run [StackEvaluator.Ite ([StackEvaluator.Instr (StackMachine.Const 2)],[StackEvaluator.Instr (StackMachine.Const 10)])] 3); print_string " = 2\n";
+  print_int (StackEvaluator.run [StackEvaluator.Ite ([StackEvaluator.Instr (StackMachine.Const 2)],[StackEvaluator.Instr (StackMachine.Const 10)]); StackEvaluator.Instr StackMachine.Add] 0); print_string " = 10\n";
+  print_int (StackEvaluator.run [StackEvaluator.Ite ([StackEvaluator.Instr (StackMachine.Const 2)],[StackEvaluator.Instr (StackMachine.Const 10)]); StackEvaluator.Instr StackMachine.Add] 3); print_string " = 5\n";
   print_string "Test Register-Machine\n";
   print_int (RegisterMachine.get_result (RegisterMachine.exec (RegisterMachine.start 1) (RegisterMachine.MoveReg (RegisterMachine.Ra,RegisterMachine.Rc)))); print_string " = 1\n";
   print_int (RegisterMachine.get_result (RegisterMachine.exec (RegisterMachine.start 1) (RegisterMachine.MovConst (RegisterMachine.Ra,5)))); print_string " = 5\n";
