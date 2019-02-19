@@ -6,18 +6,18 @@ type 'a anytree = Any of 'a anytree list
                 | Const of 'a
 
 (* 5 *)
-let rec eval tree = match tree with
-    Const a -> a 
-  | BinOp (f,l,r) -> f (eval l) (eval r)
-  | Any l -> let rep = new_channel () in 
-    let rec start_threads l = (match l with 
-          x::xs -> 
-          (let evaluate (req, reply) = 
-             let tree = sync(receive req) in sync (send reply (eval tree))
-           in let req = new_channel ()
-           in let _ = create evaluate (req, rep) in sync(send req x)); start_threads xs
-        | [] -> sync (receive rep))
-    in start_threads l
+let rec eval = function
+  | Const a -> a
+  | BinOp (op,a,b) ->
+    let ca,cb = new_channel (), new_channel () in
+    let _,_ = create (fun _ -> sync @@ send ca (eval a)) (),
+              create (fun _ -> sync @@ send cb (eval b)) () in
+    op (sync @@ receive ca) (sync @@ receive cb)
+  | Any l -> select (l |> List.map (fun a ->
+    let c = new_channel () in
+    let _ = create (fun _ -> sync @@ send c (eval a)) () in
+    receive c
+  ))
 
 
 module type Machine = sig
@@ -77,54 +77,34 @@ module MakeProgramEvaluator (M:Machine) = struct
 end
 
 
-type btree = Node of (int * btree) list
-           | Empty
-type split_res = Split of btree * int * btree
-               | Plain of btree
+open List
+
+type btree =
+    | Node of (int * btree) list
+    | Empty
+
+type split_res =
+    | Split of btree * int * btree
+    | Plain of btree
 
 (* 7 a) *)
-let split b node = match node with Empty -> Plain node 
-                                 | Node node_list -> 
-                                   if List.length node_list <= b then Plain node
-                                   else 
-                                     let rec split_node rem i = 
-                                       if i = 0 then 
-                                         match rem with 
-                                         |[] -> Plain node
-                                         | x::xs -> let (value, subtree) = x in Split (Node [(max_int, subtree)], value, Node xs)
-                                       else match rem with
-                                         | [] -> Plain node
-                                         | x::xs -> let Split (Node l, value, r) = split_node xs (i-1) in Split (Node (x::l), value, r)
-                                     in split_node  node_list (List.length node_list /2)
+let split b c =
+    let rec aux l i = function [] -> failwith "split []"
+        | x::xs when i > 0 -> aux (x::l) (i-1) xs
+        | (x,t)::xs -> (rev ((max_int,t)::l)), x, xs in
+    if (length c) <= b then Plain (Node c) else
+    let l,x,r = aux [] (b / 2) c in Split ((Node l),x,(Node r))
 
 (* 7 b) *)
-let insert_into_leaf b key tree = match tree with 
-  | Empty -> Plain (Node [(key, Empty); (max_int, Empty)])
-  | Node node_list -> let rec insert_into_list b (key, subtree) list = match list with
-      | [] -> [(key, subtree)]
-      | x::xs -> let (upper_bound, _) = x in
-        if upper_bound > key then (key, subtree)::x::xs else x::insert_into_list b (key, subtree) xs
-    in let res_node = Node (insert_into_list b (key, Empty) node_list) in
-    split b res_node
-
-let rec insert_into_node b key tree = 
-  match tree with
-  | Empty -> insert_into_leaf b key tree 
-  | Node node_list -> match node_list with 
-    | [] -> raise @@ Invalid_argument "error"
-    | (_, Empty)::xs -> insert_into_leaf b key tree
-    | xs ->  let rec insert_into_list b key list = match list with 
-        | [] -> raise @@ Invalid_argument "error"
-        | (upper_bound, subtree)::xs -> if key >= upper_bound then (upper_bound, subtree)::(insert_into_list b key xs)
-          else match insert_into_node b key subtree with 
-            | Plain subtree -> (upper_bound, subtree)::xs
-            | Split (l, s, r) -> (s, l)::(upper_bound, r)::xs
-      in split b @@ Node (insert_into_list b key node_list)
-
-let insert b key tree = match insert_into_node b key tree with
-  | Plain tree -> tree
-  | Split (l, s, r) -> Node [(s, l);(max_int, r)]
-
+let insert b k t =
+    let rec aux = function Empty -> Split (Empty,k,Empty)
+        | Node(l) -> split b (list_ins [] l)
+    and list_ins acc = function [] -> failwith "list_ins []"
+        | (x,n)::xs when k < x -> (match (aux n) with
+            | Plain t' -> rev_append acc ((x,t')::xs)
+            | Split (t1,x',t2) -> rev_append ((x',t1)::acc) ((x,t2)::xs))
+        | (x,n)::xs -> list_ins ((x,n)::acc) xs in
+    match (aux t) with Plain t' -> t' | Split (t1,x,t2) -> Node [x,t1; max_int,t2]
 
 (* ------ Testing Environment -------- *)
 
