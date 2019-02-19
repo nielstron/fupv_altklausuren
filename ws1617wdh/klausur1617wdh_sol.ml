@@ -70,7 +70,7 @@ module MakeProgramEvaluator (M:Machine) = struct
   let rec execute s stmts = match stmts with 
       x::xs -> (
         match x with Instr i -> execute (M.exec s i) xs
-                   | Ite (t, e) -> if M.get_result s != 0 then execute s t else execute s e
+                   | Ite (t, e) -> if M.get_result s != 0 then execute s (t @ xs) else execute s (e @ xs)
       ) |
       [] -> s
   let run prog input = let state = M.start input in let res = execute state prog in M.get_result res
