@@ -70,6 +70,33 @@ let () =
   let t1 = create (fun _ -> Server.request s (0.5, "I was requested first but should be printed second")) () in 
   let t2 = create (fun _ -> delay 0.1; Server.request s (0.1, "I was requested second but should be printed first")) () in
   join t1; join t2;
+  print_string "Test compressed trees\n";
+  let module CTreeTest = struct
+    open CompressedTree
+    let rec print_ctree ct =  
+      print_string "(";
+      (match ct with | CLeaf -> ()
+                     | Eq (v, sct) -> Printf.printf "%d, Eq " v;
+                       print_ctree sct;
+                     | Uneq (v, lct, rct) -> Printf.printf "%d, Uneq " v;
+                       print_ctree lct;
+                       print_string ", ";
+                       print_ctree rct
+      );
+      print_string ")"
+    let test () = 
+      print_string "compress and count: \n";
+      let tree = compress (Node (1, Leaf, Leaf)) in
+      print_ctree tree; print_string " = (1, Eq ())\n";
+      print_int (count tree); print_string " = 1\n";
+      let tree = compress (Node (1, Node (2, Leaf, Node (3, Leaf, Leaf)), Leaf)) in
+      print_ctree tree; print_string " = (1, Uneq (2, Uneq (), (3, Eq ())), ())\n";
+      print_int (count tree); print_string " = 3\n";
+      print_string "merge: \n";
+      let tree = merge ( + ) tree (compress (Node (1, Leaf, Node (2, Leaf, Node (3, Leaf, Leaf))))) in
+      print_ctree tree; print_string " = (2, Eq (2, Uneq (), (3, Eq ())))\n";
+      print_int (count tree); print_string " = 5\n";
+  end in CTreeTest.test ();
   print_string "Test Memo2\n";
   let module IntFork = struct
     type t = int
