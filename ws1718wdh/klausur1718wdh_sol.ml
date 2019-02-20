@@ -123,16 +123,16 @@ let () =
   let module PeanoTest = struct
     open Peano
     let test () = 
-      Printf.fprintf stdout "%d = %d\n" (to_int (of_int 3)) (to_int (S (S (S Z))));
-      Printf.fprintf stdout "%d = %d\n" (to_int (of_int (-10))) (to_int Z);
-      Printf.fprintf stdout "%d = %d\n" (to_int (add (of_int 5) (of_int 13))) 18;
-      Printf.fprintf stdout "%d = %d\n" (to_int (mul (of_int 3) (of_int 11))) 33;
-      Printf.fprintf stdout "%d = %d\n" (to_int (sub (of_int 0) (of_int 11))) 0;
-      Printf.fprintf stdout "%d = %d\n" (to_int (sub (of_int 11) (of_int 0))) 11;
-      Printf.fprintf stdout "%d = %d\n" (to_int (sub (of_int 11) (of_int 3))) 8;
-      Printf.fprintf stdout "%b = %b\n" (leq (of_int 11) (of_int 3)) false;
-      Printf.fprintf stdout "%b = %b\n" (leq (of_int 3) (of_int 3)) true;
-      Printf.fprintf stdout "%b = %b\n" (leq (of_int 1) (of_int 3)) true;
+      Printf.fprintf stdout "of_int: %d = %d\n" (to_int (of_int 3)) (to_int (S (S (S Z))));
+      Printf.fprintf stdout "of_int: (neg): %d = %d\n" (to_int (of_int (-10))) (to_int Z);
+      Printf.fprintf stdout "add: %d = %d\n" (to_int (add (of_int 5) (of_int 13))) 18;
+      Printf.fprintf stdout "mul: %d = %d\n" (to_int (mul (of_int 3) (of_int 11))) 33;
+      Printf.fprintf stdout "sub (leq): %d = %d\n" (to_int (sub (of_int 0) (of_int 11))) 0;
+      Printf.fprintf stdout "sub (g): %d = %d\n" (to_int (sub (of_int 11) (of_int 3))) 11;
+      Printf.fprintf stdout "sub (eq): %d = %d\n" (to_int (sub (of_int 11) (of_int 11))) 0;
+      Printf.fprintf stdout "leq (leq): %b = %b\n" (leq (of_int 1) (of_int 3)) true;
+      Printf.fprintf stdout "leq (g): %b = %b\n" (leq (of_int 11) (of_int 3)) false;
+      Printf.fprintf stdout "leq (eq): %b = %b\n" (leq (of_int 3) (of_int 3)) true;
   end in PeanoTest.test ();
   print_string "Test find1\n";
   let module FindTest = struct
