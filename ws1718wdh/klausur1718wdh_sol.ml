@@ -20,9 +20,11 @@ module Peano = struct
   let rec add p1 p2 = match p1 with 
     | Z -> p2
     | S n -> add n (S p2)
-  let rec mul p1 p2 = match p1 with
-    | Z -> Z
-    | S n -> add p2 (mul n p2)
+  let rec mul p1 p2 = let rec helper p1 p2 r =
+                        match p1 with
+                        | Z -> r
+                        | S n -> helper n p2 (add p2 r)
+    in helper p1 p2 Z
   let rec sub p1 p2 = match p2 with
     | Z -> p1
     | S n2 -> match p1 with Z -> Z
@@ -128,7 +130,7 @@ let () =
       Printf.fprintf stdout "add: %d = %d\n" (to_int (add (of_int 5) (of_int 13))) 18;
       Printf.fprintf stdout "mul: %d = %d\n" (to_int (mul (of_int 3) (of_int 11))) 33;
       Printf.fprintf stdout "sub (leq): %d = %d\n" (to_int (sub (of_int 0) (of_int 11))) 0;
-      Printf.fprintf stdout "sub (g): %d = %d\n" (to_int (sub (of_int 11) (of_int 3))) 11;
+      Printf.fprintf stdout "sub (g): %d = %d\n" (to_int (sub (of_int 11) (of_int 3))) 8;
       Printf.fprintf stdout "sub (eq): %d = %d\n" (to_int (sub (of_int 11) (of_int 11))) 0;
       Printf.fprintf stdout "leq (leq): %b = %b\n" (leq (of_int 1) (of_int 3)) true;
       Printf.fprintf stdout "leq (g): %b = %b\n" (leq (of_int 11) (of_int 3)) false;
