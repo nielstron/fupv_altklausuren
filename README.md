@@ -8,15 +8,14 @@ Dateien ohne `_sol` enthalten nur Struktur und Tests (unvollständig!), mit `_so
 
 ### Verfügbare Tests
 
-- Wiederholungsklausur Wintersemester 17/18 ![Tests vollständig](https://img.shields.io/badge/tests-complete-success.svg)
-- Klausur Wintersemester 17/18 ![Tests vollständig](https://img.shields.io/badge/tests-complete-success.svg)
-- Wiederholungsklausur Wintersemester 16/17 ![Tests vollständig](https://img.shields.io/badge/tests-complete-success.svg)
-- Klausur Wintersemester 16/17 ![Tests vollständig](https://img.shields.io/badge/tests-complete-success.svg)
-- Wiederholungsklausur Wintersemester 15/16 ![Tests "in Arbeit"...](https://img.shields.io/badge/tests-in%20progress-yellow.svg)
-    - [ ] compress / merge
-    - [x] Server
-    - [x] Memo
-- Klausur Wintersemester 15/16 ![Tests vollständig](https://img.shields.io/badge/tests-complete-success.svg)
+| Prüfung                                   | Teststatus                                                                        | Details                                    |
+|-------------------------------------------|-----------------------------------------------------------------------------------|--------------------------------------------|
+| Wiederholungsklausur Wintersemester 17/18 | ![Tests vollständig](https://img.shields.io/badge/tests-complete-success.svg)     |                                            |
+| Klausur Wintersemester 17/18              | ![Tests vollständig](https://img.shields.io/badge/tests-complete-success.svg)     |                                            |
+| Wiederholungsklausur Wintersemester 16/17 | ![Tests vollständig](https://img.shields.io/badge/tests-complete-success.svg)     |                                            |
+| Klausur Wintersemester 16/17              | ![Tests vollständig](https://img.shields.io/badge/tests-complete-success.svg)     |                                            |
+| Wiederholungsklausur Wintersemester 15/16 | ![Tests "in Arbeit"...](https://img.shields.io/badge/tests-in%20progress-yellow.svg) |  [ ] compress / merge  [x] Server [x] Memo |
+| Klausur Wintersemester 15/16              | ![Tests vollständig](https://img.shields.io/badge/tests-complete-success.svg)     |                                            |
 
 ### Tests laufen lassen
 ```bash 
