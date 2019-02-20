@@ -8,11 +8,7 @@ Dateien ohne `_sol` enthalten nur Struktur und Tests (unvollständig!), mit `_so
 
 ### Verfügbare Tests
 
-- Wiederholungsklausur Wintersemester 17/18 
-    - [x] Peano
-    - [x] find1/find2
-    - [x] S
-    - [ ] P2P
+- Wiederholungsklausur Wintersemester 17/18 (inzwischen vollständig)
 - Klausur Wintersemester 17/18 (inzwischen vollständig)
 - Wiederholungsklausur Wintersemester 16/17 (inzwischen vollständig)
 - Klausur Wintersemester 16/17 (inzwischen vollständig)

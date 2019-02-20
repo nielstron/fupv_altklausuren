@@ -103,9 +103,9 @@ module P2P = struct
         match data_channel_opt with None -> 
           let _ = create (fun () -> sync (send b (None))) ()
           in serve v
-                                  | Some dc -> let _ = create (fun () -> sync (send b (Some (receive dc))))
+                                  | Some dc -> let _ = create (fun () -> sync (send b (Some (receive dc)))) ()
                                     in serve v
-    in serve []
+    in let _ = create serve [] in ch
 
   let publish broker key v = let ch = new_channel () in
     let rec publish () = sync (send ch v); publish ()
@@ -114,7 +114,7 @@ module P2P = struct
   let request broker key = let ch = new_channel () in
     sync (send broker (Request (key, ch))); match sync (receive ch) with
     | None -> None
-    | Some repch -> sync (repch)
+    | Some repch -> Some (sync (repch))
 end
 
 (* ---- Test environment ---- *)
@@ -203,3 +203,15 @@ let () =
       print_string @@ SFloatPairListSFloatEither.show v; print_string " =~ [(1.1, 0.1); (2., 2.)]\n";
       print_string @@ SFloatPairListSFloatEither.show w; print_string " = 0.5\n";
   end in STest.test ();
+  print_string "Test P2P\n";
+  let module P2PTest = struct
+    open P2P
+    let print a = match a with None -> print_string "None"
+                             | Some v -> print_int v
+    let test () = 
+      let br = broker () in
+      publish br "secretKey" 42;
+      print (request br "anonymous"); print_string " = None\n";
+      print (request br "secretKey"); print_string " = 42\n";
+  end
+  in P2PTest.test ()
