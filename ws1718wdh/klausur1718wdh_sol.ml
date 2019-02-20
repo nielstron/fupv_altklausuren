@@ -76,7 +76,7 @@ module SList (A:S) = struct
                               | [] -> 0
   let show a = let rec helper a = match a with 
       | x::[] -> A.show x
-      | x::xs -> A.show x ^ "; "
+      | x::xs -> A.show x ^ "; " ^ helper xs
       | [] -> ""
     in "[ " ^ helper a ^ "]"
 end
@@ -184,4 +184,20 @@ let () =
       p "Requesting first: ";
       let (r, l) = find2 "first" l in
       print (r, l)
-  end in FindTest.test ()
+  end in FindTest.test ();
+  print_string "Test S\n";
+  let module STest = struct
+    module SFloat = struct
+      type t = float
+      let show a = string_of_float a
+      let size a = int_of_float a
+    end
+    module SFloatPair = SPair (SFloat) (SFloat)
+    module SFloatPairList = SList (SFloatPair)
+    module SFloatPairListSFloatEither = SEither (SFloatPairList) (SFloat)
+    let test () = 
+      let v = SFloatPairListSFloatEither.A ([(1.1, 0.1); (2., 2.)]) in
+      let w = SFloatPairListSFloatEither.B 0.5 in
+      print_string @@ SFloatPairListSFloatEither.show v; print_string " =~ [(1.1, 0.1); (2., 2.)]\n";
+      print_string @@ SFloatPairListSFloatEither.show w; print_string " = 0.5\n";
+  end in STest.test ();
