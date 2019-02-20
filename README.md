@@ -18,6 +18,7 @@ Dateien ohne `_sol` enthalten nur Struktur und Tests (unvollständig!), mit `_so
 | Klausur Wintersemester 15/16              | ![Tests vollständig](https://img.shields.io/badge/tests-complete-success.svg)     |                                            |
 
 ### Tests laufen lassen
+
 ```bash 
 ocamlc -g -thread unix.cma threads.cma klausur1617wdh.ml && ./a.out
 ```
